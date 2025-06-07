@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:calendar_application/screens/event_form_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +16,11 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  DateTime? _startDate = DateTime.now();
+  DateTime? _endDate = DateTime.now();
   CalendarFormat _calendarFormat = CalendarFormat.month;
+  int _calendarIntFormat = 1;
+  String showEventsForThis = 'day';
 
   final currentUser = FirebaseAuth.instance.currentUser;
 
@@ -35,17 +41,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: AppBar(
         title: const Text("Calendar"),
         actions: [
-          PopupMenuButton<CalendarFormat>(
+          PopupMenuButton<int>(
             icon: const Icon(Icons.view_agenda),
             onSelected: (format) {
+              showEventsForThis = 'day';
+              CalendarFormat cf = CalendarFormat.month;
+              if (format == 2) {
+                //week
+                cf = CalendarFormat.week;
+                showEventsForThis = 'week';
+              }
+              else if (format == 3) {
+                showEventsForThis = 'month';
+              }
               setState(() {
-                _calendarFormat = format;
+                _calendarFormat = cf;
+                _calendarIntFormat = format;
+                _selectedDay = null;
               });
             },
             itemBuilder: (context) => const [
-              PopupMenuItem(value: CalendarFormat.month, child: Text("Month View")),
-              PopupMenuItem(value: CalendarFormat.week, child: Text("Week View")),
-              PopupMenuItem(value: CalendarFormat.twoWeeks, child: Text("Two Week View")),
+              PopupMenuItem(value: 1, child: Text("Day View")),
+              PopupMenuItem(value: 2, child: Text("Week View")),
+              PopupMenuItem(value: 3, child: Text("Month View")),
             ],
           ),
         ],
@@ -53,15 +71,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: Column(
         children: [
           TableCalendar(
-            firstDay: DateTime.utc(2020, 1, 1),
-            lastDay: DateTime.utc(2030, 12, 31),
+            firstDay: DateTime.utc(2025, 1, 1),
+            lastDay: DateTime.utc(2035, 12, 31),
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             calendarFormat: _calendarFormat,
             onDaySelected: (selectedDay, focusedDay) {
+              DateTime? startDate = selectedDay.copyWith(hour: 0, minute: 0, second: 0);
+              DateTime? endDate = selectedDay.copyWith(hour: 23, minute: 59, second: 59);
+              if (_calendarIntFormat == 3) {
+                //month
+                startDate = DateTime(startDate.year, startDate.month, 1, startDate.hour, startDate.minute, startDate.second);
+                endDate = DateTime(endDate.year, endDate.month + 1, 0, endDate.hour, endDate.minute, endDate.second);
+              }
+              else if (_calendarIntFormat == 2) {
+                //week
+                startDate = startDate.subtract(Duration(days: startDate.weekday - 1));
+                endDate = endDate.add(Duration(days: DateTime.daysPerWeek - endDate.weekday));
+              }
               setState(() {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
+                _startDate = startDate;
+                _endDate = endDate;
               });
             },
             onFormatChanged: (format) {
@@ -80,7 +112,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   const Icon(Icons.today),
                   const SizedBox(width: 8),
                   Text(
-                    'Selected: ${_selectedDay!.toLocal().toString().split(' ')[0]}',
+                    'Selected: ${_selectedDay!.toLocal().toString().split(' ')[0]} (events this $showEventsForThis)' ,
                     style: const TextStyle(fontSize: 16),
                   ),
                 ],
@@ -90,7 +122,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
           Expanded(
             child: Center(child: Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('events').orderBy('startTime').snapshots(),
+                stream: FirebaseFirestore.instance
+                  .collection('events')
+                  .where('startTime', isGreaterThanOrEqualTo: _startDate!.toIso8601String())
+                  .where('startTime', isLessThan: _endDate!.toIso8601String())
+                  .orderBy('startTime')
+                  .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -100,15 +137,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     return const Center(child: Text("No events."));
                   }
 
-                  final selectedDateStr = _selectedDay?.toIso8601String().split('T').first;
-
-                  final events = snapshot.data!.docs.where((doc) {
-                    final start = doc['startTime'] as String;
-                    return start.startsWith(selectedDateStr ?? '');
-                  }).toList();
+                  final events = snapshot.data?.docs ?? [];
 
                   if (events.isEmpty) {
-                    return const Center(child: Text("No events for this day."));
+                    return const Center(child: Text("No events for this period."));
                   }
 
                   return ListView.builder(

@@ -1,3 +1,4 @@
+import 'package:calendar_application/screens/register_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,23 @@ class ProfileScreen extends StatelessWidget {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser == null) {
-      return const Center(child: Text("Not logged in"));
+      return Padding(
+            padding: const EdgeInsets.fromLTRB(0.0, 250.0, 0.0, 0.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(child: Text("Not logged in")),
+                Center(child: ElevatedButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                  child: const Text("Sign In")
+                )),
+                Center(child: TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+                  child: const Text("Don't have an account? Register"),
+                ))
+              ],
+            ),
+          );
     }
 
     final userEmail = currentUser.email ?? "";
@@ -27,7 +44,27 @@ class ProfileScreen extends StatelessWidget {
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text("User profile not found."));
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(title: const Text("User profile not found.")),
+                body: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                        child: const Text("SignIn"),),
+                      TextButton(
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+                        child: const Text("Don't have an account? Register"),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }
+            return const Center(child: Text(""));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;

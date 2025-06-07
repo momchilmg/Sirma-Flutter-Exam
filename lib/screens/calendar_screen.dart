@@ -146,32 +146,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        if (currentUser == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("This feature is only for registered users.")),
-          );
-          return;
-        }
-        if (_selectedDay == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please select a date first.")),
-          );
-          return;
-        }
+        onPressed: () {
+          if (currentUser == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("This feature is only for registered users.")),
+            );
+            return; 
+          }
+          if (_selectedDay == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Please select a date first.")),
+            );
+            return;
+          }
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => EventFormScreen(
-              selectedDate: _selectedDay!,
-              eventData: null,
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => EventFormScreen(
+                selectedDate: _selectedDay!,
+                eventData: null,
+              ),
             ),
-          ),
-        );
-      },
-      child: const Icon(Icons.add),
-    ),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
         );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:calendar_application/screens/navigation_screen.dart';
+import 'package:calendar_application/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +10,7 @@ import 'services/auth_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await NotificationService.initialize();
   runApp(const MyApp());
 }
 

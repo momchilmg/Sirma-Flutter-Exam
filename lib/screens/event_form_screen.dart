@@ -1,3 +1,4 @@
+import 'package:calendar_application/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -67,14 +68,14 @@ class _EventFormScreenState extends State<EventFormScreen> {
         }
 
         final uuid = const Uuid().v4(); // Generate unique event ID
-        final now = DateTime.now().toUtc().toIso8601String();
+        final now = DateTime.now().toIso8601String();
         final startDateTime = DateTime(
         widget.selectedDate.year,
         widget.selectedDate.month,
         widget.selectedDate.day,
         _startTime!.hour,
         _startTime!.minute,
-        ).toUtc().toIso8601String();
+        ).toIso8601String();
 
         final endDateTime = DateTime(
         widget.selectedDate.year,
@@ -82,7 +83,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
         widget.selectedDate.day,
         _endTime!.hour,
         _endTime!.minute,
-        ).toUtc().toIso8601String();
+        ).toIso8601String();
 
         await FirebaseFirestore.instance.collection('events').doc(uuid).set({
             "id": uuid,
@@ -94,6 +95,18 @@ class _EventFormScreenState extends State<EventFormScreen> {
             "color": _selectedColorHex,
             "createdAt": now,
         });
+
+        //10 min before
+        final notifyTime = DateTime.parse(startDateTime).subtract(const Duration(minutes: 10));
+
+        //Use ID hashCode as notification ID
+        await NotificationService.scheduleNotification(
+          id: uuid.hashCode,
+          title: "Upcoming Event",
+          body: _titleController.text,
+          scheduledTime: notifyTime,
+        );
+
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Event created: ${_titleController.text}")),

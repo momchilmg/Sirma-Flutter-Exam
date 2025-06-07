@@ -232,8 +232,8 @@ class _EventFormScreenState extends State<EventFormScreen> {
                 },
                 child: CircleAvatar(
                     backgroundColor: entry.value,
-                    child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
                     radius: isSelected ? 22 : 18,
+                    child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
                 ),
                 );
             }).toList(),

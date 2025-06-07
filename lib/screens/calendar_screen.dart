@@ -123,7 +123,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         subtitle: Text("${event['startTime'].substring(11, 16)} - ${event['endTime'].substring(11, 16)}"),
                         trailing: const Icon(Icons.event),
                         onTap: () {
-                          if (currentUser != null) {
+                          if (currentUser != null && currentUser!.uid == event['createdBy']) {
                             Navigator.push(
                               context,
                               MaterialPageRoute(

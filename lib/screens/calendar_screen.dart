@@ -24,17 +24,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   final currentUser = FirebaseAuth.instance.currentUser;
 
-  String get _currentFormatLabel {
-    switch (_calendarFormat) {
-      case CalendarFormat.month:
-        return 'Month';
-      case CalendarFormat.week:
-        return 'Week';
-      default:
-        return 'Day';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,62 +108,63 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ),
           const SizedBox(height: 16),
-          Expanded(
-            child: Center(child: Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                  .collection('events')
-                  .where('startTime', isGreaterThanOrEqualTo: _startDate!.toIso8601String())
-                  .where('startTime', isLessThan: _endDate!.toIso8601String())
-                  .orderBy('startTime')
-                  .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+          if (_selectedDay != null)
+            Expanded(
+              child: Center(child: Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                    .collection('events')
+                    .where('startTime', isGreaterThanOrEqualTo: _startDate!.toIso8601String())
+                    .where('startTime', isLessThan: _endDate!.toIso8601String())
+                    .orderBy('startTime')
+                    .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(child: Text("No events."));
-                  }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(child: Text("No events."));
+                    }
 
-                  final events = snapshot.data?.docs ?? [];
+                    final events = snapshot.data?.docs ?? [];
 
-                  if (events.isEmpty) {
-                    return const Center(child: Text("No events for this period."));
-                  }
+                    if (events.isEmpty) {
+                      return const Center(child: Text("No events for this period."));
+                    }
 
-                  return ListView.builder(
-                    itemCount: events.length,
-                    itemBuilder: (context, index) {
-                      final event = events[index].data() as Map<String, dynamic>;
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Color(int.parse(event['color'].replaceFirst('#', '0xff'))),
-                        ),
-                        title: Text(event['title']),
-                        subtitle: Text("${event['startTime'].substring(11, 16)} - ${event['endTime'].substring(11, 16)}"),
-                        trailing: const Icon(Icons.event),
-                        onTap: () {
-                          if (currentUser != null && currentUser!.uid == event['createdBy']) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => EventFormScreen(
-                                  selectedDate: DateTime.parse(event['startTime']),
-                                  eventData: event,
+                    return ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: (context, index) {
+                        final event = events[index].data() as Map<String, dynamic>;
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Color(int.parse(event['color'].replaceFirst('#', '0xff'))),
+                          ),
+                          title: Text(event['title']),
+                          subtitle: Text("${event['startTime'].substring(11, 16)} - ${event['endTime'].substring(11, 16)}"),
+                          trailing: const Icon(Icons.event),
+                          onTap: () {
+                            if (currentUser != null && currentUser!.uid == event['createdBy']) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EventFormScreen(
+                                    selectedDate: DateTime.parse(event['startTime']),
+                                    eventData: event,
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                        },
-                      );
-                    },
-                  );
-                },
+                              );
+                            }
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
               ),
             ),
-            ),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(

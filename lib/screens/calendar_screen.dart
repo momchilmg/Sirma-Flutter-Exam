@@ -156,6 +156,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ),
                               );
                             }
+                            else if (currentUser != null && currentUser!.uid != event['createdBy']) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("This is not your event.")),
+                              );
+                            }
+                            else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("This feature is only for registered users.")),
+                              );
+                            }
                           },
                         );
                       },

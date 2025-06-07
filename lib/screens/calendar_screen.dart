@@ -1,4 +1,5 @@
 import 'package:calendar_application/screens/event_form_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,6 +15,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   CalendarFormat _calendarFormat = CalendarFormat.month;
+
+  final currentUser = FirebaseAuth.instance.currentUser;
 
   String get _currentFormatLabel {
     switch (_calendarFormat) {
@@ -120,15 +123,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         subtitle: Text("${event['startTime'].substring(11, 16)} - ${event['endTime'].substring(11, 16)}"),
                         trailing: const Icon(Icons.event),
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => EventFormScreen(
-                                selectedDate: DateTime.parse(event['startTime']),
-                                eventData: event,
+                          if (currentUser != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EventFormScreen(
+                                  selectedDate: DateTime.parse(event['startTime']),
+                                  eventData: event,
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         },
                       );
                     },
@@ -142,6 +147,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       floatingActionButton: FloatingActionButton(
       onPressed: () {
+        if (currentUser == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("This feature is only for registered users.")),
+          );
+          return;
+        }
         if (_selectedDay == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Please select a date first.")),
@@ -154,6 +165,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           MaterialPageRoute(
             builder: (_) => EventFormScreen(
               selectedDate: _selectedDay!,
+              eventData: null,
             ),
           ),
         );

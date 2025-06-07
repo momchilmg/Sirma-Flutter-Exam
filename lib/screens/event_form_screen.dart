@@ -26,11 +26,14 @@ final Map<String, Color> colorOptions = {
   '#9C27B0': Colors.purple,
 };
 
-String _selectedColorHex = '#2196F3';
 class _EventFormScreenState extends State<EventFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+
+  String _selectedColorHex = '#2196F3';
+  String _widgetTitle = 'Add Event';
+  String _widgetButtonTitle = 'Create Event';
 
 
   TimeOfDay? _startTime;
@@ -52,77 +55,127 @@ class _EventFormScreenState extends State<EventFormScreen> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.eventData != null) {
+      final data = widget.eventData!;
+      _titleController.text = data['title'] ?? '';
+      _descriptionController.text = data['description'] ?? '';
+
+      final start = DateTime.parse(data['startTime']);
+      final end = DateTime.parse(data['endTime']);
+
+      _startTime = TimeOfDay.fromDateTime(start);
+      _endTime = TimeOfDay.fromDateTime(end);
+
+      _selectedColorHex = data['color'] ?? '#2196F3';
+
+      _widgetTitle = 'Edit event';
+      _widgetButtonTitle = 'Edit Event';
+    }
+  }
+
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      if (_startTime == null || _endTime == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select start and end times.")),
-        );
-        return;
-      }
+  if (_formKey.currentState!.validate()) {
+    if (_startTime == null || _endTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select start and end times.")),
+      );
+      return;
+    }
 
-      final user = FirebaseAuth.instance.currentUser;
-        if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("You must be logged in.")));
-        return;
-        }
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in.")),
+      );
+      return;
+    }
 
-        final uuid = const Uuid().v4(); // Generate unique event ID
-        final now = DateTime.now().toIso8601String();
-        final startDateTime = DateTime(
-        widget.selectedDate.year,
-        widget.selectedDate.month,
-        widget.selectedDate.day,
-        _startTime!.hour,
-        _startTime!.minute,
-        ).toIso8601String();
+    final now = DateTime.now();
+    final startDateTime = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+      _startTime!.hour,
+      _startTime!.minute,
+    );
+    final endDateTime = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+      _endTime!.hour,
+      _endTime!.minute,
+    );
 
-        final endDateTime = DateTime(
-        widget.selectedDate.year,
-        widget.selectedDate.month,
-        widget.selectedDate.day,
-        _endTime!.hour,
-        _endTime!.minute,
-        ).toIso8601String();
+    if (startDateTime.isBefore(now)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Start time must be in the future.")),
+      );
+      return;
+    }
 
-        await FirebaseFirestore.instance.collection('events').doc(uuid).set({
-            "id": uuid,
-            "title": _titleController.text,
-            "description": _descriptionController.text,
-            "startTime": startDateTime,
-            "endTime": endDateTime,
-            "createdBy": user.uid,
-            "color": _selectedColorHex,
-            "createdAt": now,
-        });
+    if (!endDateTime.isAfter(startDateTime)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("End time must be after start time.")),
+      );
+      return;
+    }
 
-        //10 min before
-        final notifyTime = DateTime.parse(startDateTime).subtract(const Duration(minutes: 10));
+    final data = {
+      "title": _titleController.text,
+      "description": _descriptionController.text,
+      "startTime": startDateTime.toIso8601String(),
+      "endTime": endDateTime.toIso8601String(),
+      "color": _selectedColorHex,
+    };
 
-        //Use ID hashCode as notification ID
-        await NotificationService.scheduleNotification(
-          id: uuid.hashCode,
-          title: "Upcoming Event",
-          body: _titleController.text,
-          scheduledTime: notifyTime,
-        );
+    if (widget.eventData != null) {
+      //update eevent
+      final eventId = widget.eventData!['id'];
+      await FirebaseFirestore.instance.collection('events').doc(eventId).update(data);
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Event updated.")),
+      );
+    } else {
+      //creating new event
+      final uuid = const Uuid().v4();
+      final createdAt = now.toIso8601String();
+
+      await FirebaseFirestore.instance.collection('events').doc(uuid).set({
+        "id": uuid,
+        ...data,
+        "createdBy": user.uid,
+        "createdAt": createdAt,
+      });
+
+      // notification 10 mins before
+      final notifyTime = startDateTime.subtract(const Duration(minutes: 10));
+
+      await NotificationService.scheduleNotification(
+        id: uuid.hashCode,
+        title: "Upcoming Event",
+        body: _titleController.text,
+        scheduledTime: notifyTime,
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Event created: ${_titleController.text}")),
       );
-
-      Navigator.pop(context);
     }
+
+    Navigator.pop(context);
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
-    if (widget.eventData != null) {
-      _selectedColorHex = widget.eventData!['color'] ?? '#2196F3';
-    }
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Event")),
+      appBar: AppBar(title: Text(_widgetTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -188,7 +241,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _submitForm,
-                child: const Text("Create Event"),
+                child: Text(_widgetButtonTitle),
               ),
             ],
           ),

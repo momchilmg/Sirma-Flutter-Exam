@@ -43,23 +43,56 @@ class MyEventsScreen extends StatelessWidget {
 
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Color(int.parse(event['color'].replaceFirst('#', '0xff'))),
+                  backgroundColor: Color(
+                    int.parse(event['color'].replaceFirst('#', '0xff')),
+                  ),
                 ),
                 title: Text(event['title']),
                 subtitle: Text("$startDate • $startTime – $endTime"),
-                trailing: const Icon(Icons.edit),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => EventFormScreen(
-                        selectedDate: DateTime.parse(event['startTime']),
-                        eventData: event,
-                      ),
-                    ),
-                  );
-                },
+                trailing: PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    if (value == 'edit') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EventFormScreen(
+                            selectedDate: DateTime.parse(event['startTime']),
+                            eventData: event,
+                          ),
+                        ),
+                      );
+                    } else if (value == 'delete') {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text("Delete Event"),
+                          content: const Text("Are you sure you want to delete this event?"),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
+                            ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Delete")),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        await FirebaseFirestore.instance
+                            .collection('events')
+                            .doc(event['id'])
+                            .delete();
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Event deleted")),
+                        );
+                      }
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'edit', child: Text("Edit")),
+                    PopupMenuItem(value: 'delete', child: Text("Delete")),
+                  ],
+                ),
               );
+
             },
           );
         },

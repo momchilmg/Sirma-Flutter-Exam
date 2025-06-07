@@ -15,7 +15,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   bool _isEditing = false;
-  String? _email;
+  String? _email;  
 
   @override
   void initState() {
@@ -23,11 +23,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserData();
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _loadUserData() async {    
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.email).get();
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     if (doc.exists) {
       final data = doc.data()!;
       setState(() {
@@ -35,13 +34,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _nameController.text = data['name'] ?? '';
       });
     }
+    else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User incorrect")),
+      );
+      return;
+    }
   }
 
   Future<void> _saveName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
-    await FirebaseFirestore.instance.collection('users').doc(user.email).update({
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
       'name': _nameController.text.trim(),
     });
 
@@ -56,9 +60,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-
-    if (currentUser == null) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text("Profile")),
         body: Padding(
@@ -89,18 +92,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Profile"),
+        actionsPadding: EdgeInsets.all(10),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await AuthService().signOut();
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (_) => false,
-              );
-            },
-          )
+            FloatingActionButton(
+              onPressed: () async {
+                await AuthService().signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (_) => false,
+                );
+              },
+              child: const Icon(Icons.logout_rounded),
+            ),
         ],
       ),
       body: Padding(

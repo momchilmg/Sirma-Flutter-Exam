@@ -1,10 +1,17 @@
-// lib/screens/event_form_screen.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 class EventFormScreen extends StatefulWidget {
   final DateTime selectedDate;
+  final Map<String, dynamic>? eventData;
 
-  const EventFormScreen({super.key, required this.selectedDate});
+  const EventFormScreen({
+    super.key,
+    required this.selectedDate,
+    this.eventData,
+  });  
 
   @override
   State<EventFormScreen> createState() => _EventFormScreenState();
@@ -34,7 +41,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
     }
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       if (_startTime == null || _endTime == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -43,27 +50,46 @@ class _EventFormScreenState extends State<EventFormScreen> {
         return;
       }
 
-      final startDateTime = DateTime(
+      final user = FirebaseAuth.instance.currentUser;
+        if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("You must be logged in.")));
+        return;
+        }
+
+        final uuid = const Uuid().v4(); // Generate unique event ID
+        final now = DateTime.now().toUtc().toIso8601String();
+        final startDateTime = DateTime(
         widget.selectedDate.year,
         widget.selectedDate.month,
         widget.selectedDate.day,
         _startTime!.hour,
         _startTime!.minute,
-      );
-      final endDateTime = DateTime(
+        ).toUtc().toIso8601String();
+
+        final endDateTime = DateTime(
         widget.selectedDate.year,
         widget.selectedDate.month,
         widget.selectedDate.day,
         _endTime!.hour,
         _endTime!.minute,
-      );
+        ).toUtc().toIso8601String();
 
-      // TODO: Save to Firestore
+        await FirebaseFirestore.instance.collection('events').doc(uuid).set({
+            "id": uuid,
+            "title": _titleController.text,
+            "description": _descriptionController.text,
+            "startTime": startDateTime,
+            "endTime": endDateTime,
+            "createdBy": user.uid,
+            "color": "#2196F3",
+            "createdAt": now,
+        });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Event created: ${_titleController.text}")),
       );
 
-      Navigator.pop(context); // Go back to calendar
+      Navigator.pop(context);
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:calendar_application/screens/event_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -83,8 +84,56 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ),
           const SizedBox(height: 16),
-          const Expanded(
-            child: Center(child: Text("Events for selected day will appear here")),
+          Expanded(
+            child: Center(child: Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('events').orderBy('startTime').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text("No events."));
+                  }
+
+                  final selectedDateStr = _selectedDay?.toIso8601String().split('T').first;
+
+                  final events = snapshot.data!.docs.where((doc) {
+                    final start = doc['startTime'] as String;
+                    return start.startsWith(selectedDateStr ?? '');
+                  }).toList();
+
+                  if (events.isEmpty) {
+                    return const Center(child: Text("No events for this day."));
+                  }
+
+                  return ListView.builder(
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      final event = events[index].data() as Map<String, dynamic>;
+                      return ListTile(
+                        title: Text(event['title']),
+                        subtitle: Text("${event['startTime'].substring(11, 16)} - ${event['endTime'].substring(11, 16)}"),
+                        trailing: const Icon(Icons.event),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EventFormScreen(
+                                selectedDate: DateTime.parse(event['startTime']),
+                                eventData: event,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            ),
           ),
         ],
       ),
@@ -100,7 +149,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => EventFormScreen(selectedDate: _selectedDay!),
+            builder: (_) => EventFormScreen(
+              selectedDate: _selectedDay!,
+            ),
           ),
         );
       },

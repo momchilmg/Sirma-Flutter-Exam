@@ -17,7 +17,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _register() async {
     try {
-      await _auth.register(emailController.text, passwordController.text);
+      await _auth.registerWithProfile(
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
     } catch (e) {
       _showError(e.toString());

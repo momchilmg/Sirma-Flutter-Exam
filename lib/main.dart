@@ -1,3 +1,4 @@
+import 'package:calendar_application/screens/navigation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           } else if (snapshot.hasData) {
-            return const HomeScreen();
+            return const NavigationScreen();
           } else {
             return const LoginScreen();
           }

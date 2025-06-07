@@ -1,3 +1,4 @@
+import 'package:calendar_application/screens/navigation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:calendar_application/services/auth_service.dart';
 import 'package:calendar_application/screens/register_screen.dart';
@@ -18,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _login() async {
     try {
       await _auth.signIn(emailController.text, passwordController.text);
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const NavigationScreen()));
     } catch (e) {
       _showError(e.toString());
     }
@@ -43,7 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
             TextButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
               child: const Text("Don't have an account? Register"),
-            )
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NavigationScreen())),
+              child: const Text('Login as Guest'))
           ],
         ),
       ),

@@ -113,6 +113,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     itemBuilder: (context, index) {
                       final event = events[index].data() as Map<String, dynamic>;
                       return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Color(int.parse(event['color'].replaceFirst('#', '0xff'))),
+                        ),
                         title: Text(event['title']),
                         subtitle: Text("${event['startTime'].substring(11, 16)} - ${event['endTime'].substring(11, 16)}"),
                         trailing: const Icon(Icons.event),

@@ -17,10 +17,20 @@ class EventFormScreen extends StatefulWidget {
   State<EventFormScreen> createState() => _EventFormScreenState();
 }
 
+final Map<String, Color> colorOptions = {
+  '#2196F3': Colors.blue,
+  '#4CAF50': Colors.green,
+  '#FF9800': Colors.orange,
+  '#E91E63': Colors.pink,
+  '#9C27B0': Colors.purple,
+};
+
+String _selectedColorHex = '#2196F3';
 class _EventFormScreenState extends State<EventFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+
 
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
@@ -81,7 +91,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
             "startTime": startDateTime,
             "endTime": endDateTime,
             "createdBy": user.uid,
-            "color": "#2196F3",
+            "color": _selectedColorHex,
             "createdAt": now,
         });
 
@@ -95,6 +105,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.eventData != null) {
+      _selectedColorHex = widget.eventData!['color'] ?? '#2196F3';
+    }
     return Scaffold(
       appBar: AppBar(title: const Text("Add Event")),
       body: Padding(
@@ -139,6 +152,26 @@ class _EventFormScreenState extends State<EventFormScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+            Text("Pick a Color Label:", style: TextStyle(fontWeight: FontWeight.bold)),
+            Wrap(
+            spacing: 10,
+            children: colorOptions.entries.map((entry) {
+                final isSelected = entry.key == _selectedColorHex;
+                return GestureDetector(
+                onTap: () {
+                    setState(() {
+                    _selectedColorHex = entry.key;
+                    });
+                },
+                child: CircleAvatar(
+                    backgroundColor: entry.value,
+                    child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
+                    radius: isSelected ? 22 : 18,
+                ),
+                );
+            }).toList(),
+            ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _submitForm,

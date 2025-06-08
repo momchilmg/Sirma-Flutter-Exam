@@ -1,16 +1,42 @@
-# calendar_application
 
-A new Flutter project.
+# Flutter Exam - Calendar application
 
-## Getting Started
+A simple and functional calendar mobile app using Flutter and Dart, with basic authentication and event management. Users can log in, create/edit/delete events, and view their schedule in various formats.
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Deployment
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To deploy this project:
+
+1. Install Flutter
+2. Install Firebase
+3. Install VSCode (optional)
+4. Install Android SDK
+
+Then, open the root directory of the project and run these commands:
+```
+  flutter pub get
+  flutter run
+```
+
+
+## Flow chart
+
+```mermaid
+graph TD
+A[Calendar] --> B(My Profile)
+A --> C(My Events)
+B --> D(Login)
+B --> E(Register)
+A --> F(My Events)
+A --> G(Add/Edit Events)
+G ..-> I{Create events}
+G ..-> H{Edit events}
+F ..-> H
+F ..-> L{Delete events}
+B ..-> K{Edit profile name}
+B ..-> M{Log Out}
+B ..-> N{Log In user}
+B ..-> O{Register user}
+```

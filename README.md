@@ -26,16 +26,15 @@ Then, open the root directory of the project and run these commands:
 
 ```mermaid
 graph TD
-Z[Login] --> A{Calendar}
+Z[Login] --> A(Calendar)
 Z --> B(My Profile)
 Z --> C(My Events)
 B --> Z
-B --> E(Register)
-Z --> E
+Z --> E(Register)
+B --> E
 Z --> F(My Events)
-A --> G(Add/Edit Events)
-G ..-> I{Create events}
-G ..-> H{Edit events}
+A ..-> I{Create events}
+A ..-> H{Edit events}
 F ..-> H
 F ..-> L{Delete events}
 B ..-> K{Edit profile name}

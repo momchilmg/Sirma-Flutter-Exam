@@ -9,6 +9,7 @@ A simple and functional calendar mobile app using Flutter and Dart, with basic a
 
 To deploy this project:
 
+**IMPORTANT:** This project is written for Android only, using a Windows development environment.
 1. Install Flutter
 2. Install Firebase
 3. Install VSCode (optional)

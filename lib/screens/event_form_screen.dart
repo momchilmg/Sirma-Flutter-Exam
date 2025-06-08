@@ -195,6 +195,13 @@ class _EventFormScreenState extends State<EventFormScreen> {
               Row(
                 children: [
                   Expanded(
+                    child: Text("Date: ${widget.selectedDate.day.toString().padLeft(2, '0')}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.year}"),
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
                     child: Text(_startTime == null
                         ? "Start Time: Not set"
                         : "Start: ${_startTime!.format(context)}"),

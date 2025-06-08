@@ -99,7 +99,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   const Icon(Icons.today),
                   const SizedBox(width: 8),
                   Text(
-                    'Selected: ${_selectedDay!.toLocal().toString().split(' ')[0]} (events this $showEventsForThis)' ,
+                    'Selected: ${_selectedDay!.toString().substring(8, 10)}-${_selectedDay!.toString().substring(5, 7)}-${_selectedDay!.toString().substring(0, 4)} (events this $showEventsForThis)' ,
                     style: const TextStyle(fontSize: 16),
                   ),
                 ],
@@ -140,7 +140,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             backgroundColor: Color(int.parse(event['color'].replaceFirst('#', '0xff'))),
                           ),
                           title: Text(event['title']),
-                          subtitle: Text("${event['startTime'].substring(11, 16)} - ${event['endTime'].substring(11, 16)}"),
+                          subtitle: Text("${event['startTime'].substring(8, 10)}-${event['startTime'].substring(5, 7)}-${event['startTime'].substring(0, 4)} ${event['startTime'].substring(11, 16)} - ${event['endTime'].substring(11, 16)}"),
                           trailing: const Icon(Icons.event),
                           onTap: () {
                             if (currentUser != null && currentUser!.uid == event['createdBy']) {

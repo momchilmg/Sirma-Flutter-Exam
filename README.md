@@ -41,7 +41,6 @@ F ..-> L{Delete events}
 B ..-> K{Edit profile name}
 B ..-> M{Log Out}
 B ..-> N{Log In user}
-B ..-> O{Register user}
+E ..-> O{Register user}
 Z ..-> N
-Z ..-> O
 ```

@@ -137,13 +137,15 @@ class _EventFormScreenState extends State<EventFormScreen> {
       final eventId = widget.eventData!['id'];
       await FirebaseFirestore.instance.collection('events').doc(eventId).update(data);
 
+      //cancel notification
+      await NotificationService.cancelNotification(eventId.hashCode);
+      //create new notification
       await NotificationService.scheduleNotification(
         id: eventId.hashCode,
         title: "Upcoming Event",
         body: _titleController.text,
         scheduledTime: startDateTime,
-      );
-      
+      );      
       //for debugging
       //await NotificationService.getPendingNotifications();
 
@@ -171,6 +173,9 @@ class _EventFormScreenState extends State<EventFormScreen> {
         body: _titleController.text,
         scheduledTime: startDateTime,
       );
+
+      //for debugging
+      //await NotificationService.getPendingNotifications();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Event created: ${_titleController.text}")),

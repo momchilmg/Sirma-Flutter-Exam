@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -42,7 +41,7 @@ class NotificationService {
       id,
       title,
       body,
-      tz.TZDateTime.from(scheduledTime.toLocal(), tz.local),
+      tz.TZDateTime.from(scheduledTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'calendar_event_channel',
@@ -54,8 +53,16 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: null,
-      payload: scheduledTime.toLocal().toIso8601String(),
+      payload: '${tz.TZDateTime.from(scheduledTime, tz.local).toIso8601String()} * ${tz.local.toString()}',
     );
+  }
+
+  static Future<void> cancelNotification(int id) async {
+    await _notificationsPlugin.cancel(id);
+  }
+
+  static Future<void> cancelAllNotification() async {
+    await _notificationsPlugin.cancelAll();
   }
 
   //for debugging - DEBUG CONSOLE in VSCode

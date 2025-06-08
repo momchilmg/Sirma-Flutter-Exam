@@ -1,3 +1,4 @@
+import 'package:calendar_application/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +80,8 @@ class MyEventsScreen extends StatelessWidget {
                             .collection('events')
                             .doc(event['id'])
                             .delete();
+                        
+                        await NotificationService.cancelNotification(event['id'].hashCode);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Event deleted")),

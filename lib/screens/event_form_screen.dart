@@ -137,6 +137,16 @@ class _EventFormScreenState extends State<EventFormScreen> {
       final eventId = widget.eventData!['id'];
       await FirebaseFirestore.instance.collection('events').doc(eventId).update(data);
 
+      await NotificationService.scheduleNotification(
+        id: eventId.hashCode,
+        title: "Upcoming Event",
+        body: _titleController.text,
+        scheduledTime: startDateTime,
+      );
+      
+      //for debugging
+      //await NotificationService.getPendingNotifications();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Event updated.")),
       );
@@ -153,13 +163,13 @@ class _EventFormScreenState extends State<EventFormScreen> {
       });
 
       // notification 10 mins before
-      final notifyTime = startDateTime.subtract(const Duration(minutes: 10));
+      // final notifyTime = startDateTime.subtract(const Duration(minutes: 10));
 
       await NotificationService.scheduleNotification(
         id: uuid.hashCode,
         title: "Upcoming Event",
         body: _titleController.text,
-        scheduledTime: notifyTime,
+        scheduledTime: startDateTime,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

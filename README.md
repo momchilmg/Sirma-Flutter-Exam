@@ -41,6 +41,6 @@ B ..-> K{Edit profile name}
 B ..-> M{Log Out}
 B ..-> N{Log In user}
 B ..-> O{Register user}
-Z ..> N
-Z ..> O
+Z ..-> N
+Z ..-> O
 ```

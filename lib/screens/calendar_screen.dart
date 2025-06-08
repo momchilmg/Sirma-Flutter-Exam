@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:calendar_application/screens/event_form_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

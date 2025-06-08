@@ -53,7 +53,7 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: null,
-      payload: '${tz.TZDateTime.from(scheduledTime, tz.local).toIso8601String()} * ${tz.local.toString()}',
+      //payload: '${tz.TZDateTime.from(scheduledTime, tz.local).toIso8601String()} * ${tz.local.toString()}',
     );
   }
 
